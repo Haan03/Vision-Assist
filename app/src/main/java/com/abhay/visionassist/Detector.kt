@@ -1,6 +1,7 @@
 package com.abhay.visionassist
 
 import android.content.Context
+import com.abhay.visionassist.Constants
 import android.graphics.Bitmap
 import android.os.SystemClock
 import com.abhay.visionassist.MetaData.extractNamesFromLabelFile
@@ -139,7 +140,7 @@ class Detector(
         val boundingBoxes = mutableListOf<BoundingBox>()
 
         for (c in 0 until numElements) {
-            var maxConf = CONFIDENCE_THRESHOLD
+            var maxConf = Constants.CONFIDENCE_THRESHOLD
             var maxIdx = -1
             var j = 4
             var arrayIdx = c + numElements * j
@@ -152,7 +153,7 @@ class Detector(
                 arrayIdx += numElements
             }
 
-            if (maxConf > CONFIDENCE_THRESHOLD) {
+            if (maxConf > Constants.CONFIDENCE_THRESHOLD) {
                 val clsName = labels[maxIdx]
                 val cx = array[c] // 0
                 val cy = array[c + numElements] // 1
@@ -195,7 +196,7 @@ class Detector(
             while (iterator.hasNext()) {
                 val nextBox = iterator.next()
                 val iou = calculateIoU(first, nextBox)
-                if (iou >= IOU_THRESHOLD) {
+                if (iou >= Constants.IOU_THRESHOLD) {
                     iterator.remove()
                 }
             }
@@ -225,7 +226,7 @@ class Detector(
         private const val INPUT_STANDARD_DEVIATION = 255f
         private val INPUT_IMAGE_TYPE = DataType.FLOAT32
         private val OUTPUT_IMAGE_TYPE = DataType.FLOAT32
-        private const val CONFIDENCE_THRESHOLD = 0.3F
-        private const val IOU_THRESHOLD = 0.5F
+
+
     }
 }

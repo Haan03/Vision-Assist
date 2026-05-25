@@ -21,6 +21,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.abhay.visionassist.Constants.LABELS_PATH
+import com.abhay.visionassist.Constants.AUDIO_FEEDBACK_INTERVAL_NORMAL
+import com.abhay.visionassist.Constants.AUDIO_FEEDBACK_INTERVAL_CLOSE
+import com.abhay.visionassist.Constants.MIN_CONFIDENCE_FOR_SPEECH
 import com.abhay.visionassist.Constants.MODEL_PATH
 import java.util.Locale
 import java.util.concurrent.ExecutorService
@@ -150,22 +153,26 @@ class MainActivity : AppCompatActivity(), Detector.DetectorListener {
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         runOnUiThread {
             val overlay = findViewById<OverlayView>(R.id.overlay)
-            overlay.setResults(boundingBoxes)
+            overlay.setResults(boundingBoxes, inferenceTime)
             overlay.invalidate()
 
             // --- ADVANCED VOICE LOGIC ---
             if (boundingBoxes.isNotEmpty()) {
                 val bestObj = boundingBoxes.maxByOrNull { it.cnf }
 
-                if (bestObj != null && bestObj.cnf > 0.60) {
+                if (bestObj != null && bestObj.cnf > MIN_CONFIDENCE_FOR_SPEECH) {
                     val currentTime = System.currentTimeMillis()
 
-                    if (currentTime - lastSpeakTime > 3000) {
+                    // 1. Distance Calculation
+                    val area = bestObj.w * bestObj.h
+                    val isVeryClose = area > 0.4
 
-                        // 1. Distance Calculation
-                        val area = bestObj.w * bestObj.h
+                    val requiredInterval = if (isVeryClose) AUDIO_FEEDBACK_INTERVAL_CLOSE else AUDIO_FEEDBACK_INTERVAL_NORMAL
+
+                    if (currentTime - lastSpeakTime > requiredInterval) {
+
                         val distance = when {
-                            area > 0.4 -> "Very Close"
+                            isVeryClose -> "Very Close"
                             area < 0.1 -> "Far"
                             else -> "Near"
                         }
